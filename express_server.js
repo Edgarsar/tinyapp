@@ -8,6 +8,12 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 // respond with "Hello!" when a GET request is made to the homepage
 app.get("/", (req, res) => {
   res.send("Hello!");
