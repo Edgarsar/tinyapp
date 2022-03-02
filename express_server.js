@@ -11,10 +11,12 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// respond with "JSON string urlDatabase object" when a GET request is made to the homepage
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// respond with "html code" when a GET request is made to the homepage
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
