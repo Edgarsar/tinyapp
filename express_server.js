@@ -52,6 +52,13 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
+app.post("/urls/:shortURL/delete",(req,res)=>{
+  const deletetUrl = req.params.shortURL
+  delete urlDatabase[deletetUrl];
+  res.redirect("/urls");
+});
+
+
 /* // respond with "Hello!" when a GET request is made to the homepage
 app.get("/", (req, res) => {
   res.send("Hello!");
