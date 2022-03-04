@@ -32,10 +32,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
+
 //respond with a redirect
 app.post("/urls", (req, res) => {
   // generates a shortURL
@@ -51,11 +53,26 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-
-app.post("/urls/:shortURL/delete",(req,res)=>{
+// POST route that removes a URL resource
+app.post("/urls/:shortURL/delete", (req, res) => {
   const deletetUrl = req.params.shortURL
   delete urlDatabase[deletetUrl];
   res.redirect("/urls");
+});
+
+// POST route that updates a URL resource
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  const newURL = req.body.longURL;
+  urlDatabase[id] = newURL;
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
+// GET route that take us to the appropriate urls_show page.
+app.get("/urls/:shortURL/edit", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("urls_show", templateVars);
 });
 
 
@@ -63,12 +80,10 @@ app.post("/urls/:shortURL/delete",(req,res)=>{
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-
 // respond with "JSON string urlDatabase object" when a GET request is made to the homepage
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
 // respond with "html code" when a GET request is made to the homepage
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
