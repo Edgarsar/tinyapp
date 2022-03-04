@@ -5,11 +5,18 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-function generateRandomString() {
-
-}
+//generates a string of 6 random alphanumeric characters
+const generateRandomString = ()=>{
+  let randomString = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const length = 6;
+  for (let i = 0; i < length; i++) {
+    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return randomString;
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -30,10 +37,10 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls",(req,res)=>{
-  console.log(req.body)
-  res.send("ok")
-})
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  res.send("ok");
+});
 
 /* // respond with "Hello!" when a GET request is made to the homepage
 app.get("/", (req, res) => {
