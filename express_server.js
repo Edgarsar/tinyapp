@@ -8,7 +8,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //generates a string of 6 random alphanumeric characters
-const generateRandomString = ()=>{
+const generateRandomString = () => {
   let randomString = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const length = 6;
@@ -36,11 +36,21 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
-
+//respond with a redirect
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("ok");
+  // generates a shortURL
+  const shortURL = generateRandomString();
+  // save the longURL and shortURL to the urlDatabase
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`urls/${shortURL}`);
 });
+
+// redirect any request to "/u/:shortURL" to its longURL
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 
 /* // respond with "Hello!" when a GET request is made to the homepage
 app.get("/", (req, res) => {
