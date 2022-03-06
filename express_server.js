@@ -7,6 +7,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 //generates a string of 6 random alphanumeric characters
 const generateRandomString = () => {
@@ -61,6 +62,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/login", (req, res) => {
+  const body = req.body;
+  res.cookie("username", body.username);
+
+  res.redirect("/urls");
+});
+
 // POST route that updates a URL resource
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
@@ -75,6 +83,7 @@ app.get("/urls/:shortURL/edit", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
+
 
 
 /* // respond with "Hello!" when a GET request is made to the homepage
