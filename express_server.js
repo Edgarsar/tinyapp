@@ -7,7 +7,8 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser())
+
+app.use(cookieParser());
 
 //generates a string of 6 random alphanumeric characters
 const generateRandomString = () => {
@@ -26,17 +27,18 @@ const urlDatabase = {
 };
 // use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 // use res.render to load up an "urls_new.ejs" view file
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies["username"], };
+  res.render("urls_new", templateVars);
 });
 
 // use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
   res.render("urls_show", templateVars);
 });
 
@@ -62,10 +64,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+// POST route that sets the cookies and redirects to the "/urls" page
 app.post("/urls/login", (req, res) => {
   const body = req.body;
   res.cookie("username", body.username);
+  res.redirect("/urls");
+});
 
+// POST route that removes the cookies and redirects to the "/urls" page
+app.post("/urls/logout", (req, res) => {
+  res.clearCookie("username");
   res.redirect("/urls");
 });
 
@@ -78,26 +86,11 @@ app.post("/urls/:id", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// GET route that take us to the appropriate urls_show page.
+// GET route that takes us to the appropriate urls_show page
 app.get("/urls/:shortURL/edit", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
-
-
-
-/* // respond with "Hello!" when a GET request is made to the homepage
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-// respond with "JSON string urlDatabase object" when a GET request is made to the homepage
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-// respond with "html code" when a GET request is made to the homepage
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-}); */
 
 
 app.listen(PORT, () => {
