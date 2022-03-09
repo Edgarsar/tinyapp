@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+body {background-color: green;}
+label {display:inline-block;width:235px;margin-left: 20px; margin-top: 20px; font-size: 25px; font-family: Calibre; color: white; text-align: left;}
+input  {margin-top: 20px; margin-right: 20px;padding: 12px 20px;}
+button {margin-left: 320px; margin-top: 20px; margin-bottom: 20px; background-color:blue; width:120px; height: 40px;
+color: white;
+font-size: 20px;
+border-radius: 46px; 
+-moz-border-radius: 46px; 
+-webkit-border-radius: 46px; 
+border: 0px solid #800000;
+font-family: Calibre}
+  </style>
+</head>
+
+<body>
+  <div id="main">
+    <form action="/login" method="POST">
+      <div>
+        <h2>Login</h2>
+        <label>Email:</label>
+        <input type="email" placeholder="Enter email" name="email" >
+      </div>
+        <label>Password:</label>
+        <input type="password" placeholder="Enter password" name="password" >
+      </div>
+      <div>
+        <button type="submit"><b>Login</b></button>
+      </div>
+    </form>
+
+  </div>
+
+</body>
+
+</html>
