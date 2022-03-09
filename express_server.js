@@ -38,7 +38,8 @@ app.get("/urls/new", (req, res) => {
 
 // use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
+  const id = req.params.shortURL;
+  const templateVars = { shortURL: id, longURL: urlDatabase[id], username: req.cookies["username"]};
   res.render("urls_show", templateVars);
 });
 
