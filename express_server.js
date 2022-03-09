@@ -116,18 +116,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// POST route that sets the cookies and redirects to the "/urls" page
-app.post("/urls/login", (req, res) => {
-  const body = req.body;
-  res.cookie("username", body.username);
-  res.redirect("/urls");
-});
 
-// POST route that removes the cookies and redirects to the "/urls" page
-app.post("/urls/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect("/urls");
-});
+
+
 
 // POST route that updates a URL resource
 app.post("/urls/:id", (req, res) => {
@@ -147,6 +138,24 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 app.get("/register", (req, res) => {
   res.render("urls_register")
 });
+
+app.get("/login", (req, res)=>{
+  res.render("urls_login")
+})
+
+// POST route that sets the cookies and redirects to the "/urls" page
+// app.post("/urls/login", (req, res) => {
+//   const email = req.body.email;
+//   const password = req.body.password;
+
+//   res.redirect("/urls");
+// });
+
+// POST route that removes the cookies and redirects to the "/urls" page
+// app.post("/urls/logout", (req, res) => {
+//   res.clearCookie("user_id");
+//   res.redirect("/urls");
+// });
 
 
 app.listen(PORT, () => {
