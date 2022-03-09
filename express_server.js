@@ -22,24 +22,52 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
+  "b2xVn2": "phttp://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+//Database
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = { id, email, password };
+  users[id] = user;
+  res.cookie("user_id", id);
+  res.redirect("/urls");
+  
+});
+
+
 // use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
+
 // use res.render to load up an "urls_new.ejs" view file
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"], };
+  const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 // use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
   const id = req.params.shortURL;
-  const templateVars = { shortURL: id, longURL: urlDatabase[id], username: req.cookies["username"] };
+  const templateVars = { shortURL: id, longURL: urlDatabase[id], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -74,7 +102,7 @@ app.post("/urls/login", (req, res) => {
 
 // POST route that removes the cookies and redirects to the "/urls" page
 app.post("/urls/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -83,13 +111,13 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.longURL;
   urlDatabase[id] = newURL;
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase , user: users[req.cookies["user_id"]]};
   res.render("urls_index", templateVars);
 });
 
 // GET route that takes us to the appropriate urls_show page
 app.get("/urls/:shortURL/edit", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
