@@ -39,7 +39,7 @@ app.get("/urls/new", (req, res) => {
 // use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
   const id = req.params.shortURL;
-  const templateVars = { shortURL: id, longURL: urlDatabase[id], username: req.cookies["username"]};
+  const templateVars = { shortURL: id, longURL: urlDatabase[id], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
 
@@ -89,8 +89,12 @@ app.post("/urls/:id", (req, res) => {
 
 // GET route that takes us to the appropriate urls_show page
 app.get("/urls/:shortURL/edit", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  username: req.cookies["username"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  res.render("urls_register")
 });
 
 
