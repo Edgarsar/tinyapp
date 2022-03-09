@@ -40,14 +40,37 @@ const users = {
   }
 };
 
+// email lookup function
+const getUserByEmail = (email) => {
+  for(const userId in users) {
+    const user = users[userId];
+    if(user.email === email) {
+      return user;
+    }
+  }
+  return null;
+}
+
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   const user = { id, email, password };
-  users[id] = user;
+
+  // if email/password are empty, send back response with 400 status code
+  if (!email || !password) {
+    return res.status(400).send("Email and password cannot be blank");
+  }
+  // if an email that already exists in users object, send response back with 400 status code
+  const newUser = getUserByEmail(email);
+  if(newUser){
+      return res.status(400).send("A user with that email already exist");
+    }
+    // add the new user to the user object
+    users[id] = user;
   res.cookie("user_id", id);
   res.redirect("/urls");
+  console.log(users)
   
 });
 
