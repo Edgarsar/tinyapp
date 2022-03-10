@@ -9,40 +9,20 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <!-- <a class="nav-i em nav-link" href="/login">Login</a> -->
-        <!-- <a class="nav-item nav-link" href="/register">Register</a> -->
       </div>
     </div>
-    <% if (!user){ %>
-      <form method="GET" action="/login">
-        <div class="form-group mb-2">
-          <button type="submit" class="btn btn-outline-dark">Login</button>
-        </div>
-      </form>
-      <% } else {%>
-        <form class="form-inline" method="POST" action="/logout">
-          <div class="form-group mb-2">
-            <label for="user" style="width: 300px; margin: 1em">Logged in As: <%= user["email"] %>! </label>
-            <button type="submit" class="btn btn-outline-dark">Logout</button>
-          </div>
-          <% } %>
-        </form>
-        <form class="form-inline" method="GET" action="/register">
-          <div class="form-group mb-2">
-            <button type="submit" class="btn btn-outline-dark">Register</button>
-          </div>
-          <!-- <% if (!user){ %>
-      <form method="POST" action="/login">
-        <div class="form-group mb-2">
+
+    <div class="navbar-nav">
+      <% if (!user) { %>
         <a class="nav-item nav-link" href="/login">Login</a>
-        </div>
-      </form>
-      <% } else {%>
-        <form class="form-inline" method="POST" action="/urls/logout">
-          <div class="form-group mb-2">
-            <label for="user" style="width: 300px; margin: 1em">Logged in As: <%= user["email"] %>! </label>
-            <button type="submit" class="btn btn-outline-dark">Logout</button>
-          </div>
-          <% } %> -->
+        <a class="nav-item nav-link" href="/register">Register</a>
+        <% } else { %>
+          <form class="form-inline" action="/logout" method="POST">
+            <p style="margin: auto; margin-right: 1em">Logged in as: <%= user.email %>!</p>
+            <button class="btn btn-outline-dark" type="submit">Logout</button>
+          </form>
+          <% } %>
+    </div>
+    </div>
   </nav>
 </header>
