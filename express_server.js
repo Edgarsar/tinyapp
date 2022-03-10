@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
@@ -10,19 +10,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-//generates a string of 6 random alphanumeric characters
-const generateRandomString = () => {
-  let randomString = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const length = 6;
-  for (let i = 0; i < length; i++) {
-    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return randomString;
-};
-
 const urlDatabase = {
-  "b2xVn2": "phttp://www.lighthouselabs.ca",
+  "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
@@ -40,42 +29,38 @@ const users = {
   }
 };
 
-// email lookup function
+// Email lookup function
 const getUserByEmail = (email) => {
-  for(const userId in users) {
+  for (const userId in users) {
     const user = users[userId];
-    if(user.email === email) {
+    if (user.email === email) {
       return user;
     }
   }
   return null;
-}
+};
 
-app.post("/register", (req, res) => {
-  const id = generateRandomString();
-  const email = req.body.email;
-  const password = req.body.password;
-  const user = { id, email, password };
-
-  // if email/password are empty, send back response with 400 status code
-  if (!email || !password) {
-    return res.status(400).send("Email and password cannot be blank");
+// Generates a string of 6 random alphanumeric characters
+const generateRandomString = () => {
+  let randomString = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const length = 6;
+  for (let i = 0; i < length; i++) {
+    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
   }
-  // if an email that already exists in users object, send response back with 400 status code
-  const newUser = getUserByEmail(email);
-  if(newUser){
-      return res.status(400).send("A user with that email already exist");
+  return randomString;
+};
+// Check for the email and password in the Users Database
+const authenticateUser = (email, password) => {
+  for (let key in users) {
+    if (users[key].email === email && users[key].password === password) {
+      return users[key];
     }
-    // add the new user to the user object
-    users[id] = user;
-  res.cookie("user_id", id);
-  res.redirect("/urls");
-  console.log(users)
-  
-});
+  }
+  return false;
+};
 
-
-// use res.render to load up a "urls_index.ejs" view file
+// Use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
@@ -111,21 +96,17 @@ app.get("/u/:shortURL", (req, res) => {
 
 // POST route that removes a URL resource
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const deletetUrl = req.params.shortURL
+  const deletetUrl = req.params.shortURL;
   delete urlDatabase[deletetUrl];
   res.redirect("/urls");
 });
-
-
-
-
 
 // POST route that updates a URL resource
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.longURL;
   urlDatabase[id] = newURL;
-  const templateVars = { urls: urlDatabase , user: users[req.cookies["user_id"]]};
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -136,27 +117,63 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register")
+  const templateVars = { user: users[req.cookies["user_id"]] };
+
+  res.render("urls_register", templateVars);
 });
 
-app.get("/login", (req, res)=>{
-  res.render("urls_login")
-})
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  // 1. if email/password are empty, send back response with 400 status code
+  if (!email || !password) {
+    return res.status(400).send("Email and password cannot be blank");
+  }
+  // If an email that already exists in users object, send response back with 400 status code
+  const newUser = getUserByEmail(email);
+  if (newUser) {
+    return res.status(400).send("A user with that email already exist");
+  }
+  // Register the new user
+  const id = generateRandomString();
+  const user = { id, email, password };
+  // add the new user to the user object
+  users[id] = user;
+  res.cookie("user_id", id);
+  res.redirect("/urls");
 
-// POST route that sets the cookies and redirects to the "/urls" page
-// app.post("/urls/login", (req, res) => {
-//   const email = req.body.email;
-//   const password = req.body.password;
+});
 
-//   res.redirect("/urls");
-// });
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+});
+
+app.post("/login", (req, res) => {
+  const email = req.body.useremail;
+  const password = req.body.password;
+
+  // The email and password should not be blank
+  if (!email || !password) {
+    res.send("Email or password cannot be blank");
+  }
+  // Check for the email and password in the Users Database
+  const user = authenticateUser(email, password);
+
+  if (user) {
+    // User was returned
+    res.cookie('user_id', user.id);
+    res.redirect("/urls");
+  } else {
+    res.send("Hey! the username with the specified email or password does not match!");
+  }
+});
 
 // POST route that removes the cookies and redirects to the "/urls" page
-// app.post("/urls/logout", (req, res) => {
-//   res.clearCookie("user_id");
-//   res.redirect("/urls");
-// });
-
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/urls");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
