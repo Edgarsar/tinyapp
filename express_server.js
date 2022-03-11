@@ -47,9 +47,9 @@ const users = {
 };
 
 // Email lookup function
-const getUserByEmail = (email) => {
-  for (const userId in users) {
-    const user = users[userId];
+const getUserByEmail = (email, database) => {
+  for (const userId in database) {
+    const user = database[userId];
     if (user.email === email) {
       return user;
     }
@@ -183,7 +183,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email and password cannot be blank");
   }
   // If an email that already exists in users object, send response back with 400 status code
-  const newUser = getUserByEmail(email);
+  const newUser = getUserByEmail(email, users);
 
   if (newUser) {
     return res.status(400).send("A user with that email already exist");
@@ -213,10 +213,10 @@ app.post("/login", (req, res) => {
     res.send("Email or password cannot be blank");
   }
   // Find the user by email in the user database
-  const user = getUserByEmail(email);
+  const user = getUserByEmail(email, users);
   //Checks email and user's password is correct
   if (user && bcrypt.compareSync(password, users[user.id].hashedPassword)) {
-  // set the session cookie
+    // set the session cookie
     req.session.user_id = user.id;
     res.redirect("/urls");
   } else {
