@@ -12,13 +12,17 @@ app.use(cookieParser());
 
 const urlDatabase = {
   b6UTxQ: {
-        longURL: "https://www.tsn.ca",
-        userID: "aJ48lW"
-    },
-    i3BoGr: {
-        longURL: "https://www.google.ca",
-        userID: "aJ48lW"
-    }
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  },
+  er8dyr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
 
 //Database
@@ -58,17 +62,29 @@ const generateRandomString = () => {
 };
 // Check for the email and password in the Users Database
 const authenticateUser = (email, password) => {
-  for (let key in users) {
+  for (const key in users) {
     if (users[key].email === email && users[key].password === password) {
       return users[key];
     }
   }
   return false;
 };
+// Returns the URLs where the userID is equal to the id of the currently logged-in user
+const urlsForUser = (id) => {
+  const newObj = {};
+  for (const urlId in urlDatabase) {
+    if (urlDatabase[urlId]["userID"] === id) {
+      newObj[urlId] = urlDatabase[urlId];
+    }
+  }
+  return newObj;
+};
 
 // Use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  const id = req.cookies["user_id"];
+
+  const templateVars = { urls: urlsForUser(id), user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -96,58 +112,72 @@ app.post("/urls", (req, res) => {
   if (!users[user]) {
     res.send("Please login or register firts");
   } else {
-  // generates a shortURL
-  const shortURL = generateRandomString();
-  // save the longURL and shortURL to the urlDatabase
-  urlDatabase[shortURL] = {longURL :req.body.longURL,userID:req.cookies["user_id"]};
-  res.redirect(`urls/${shortURL}`);
+    // generates a shortURL
+    const shortURL = generateRandomString();
+    // save the longURL and shortURL to the urlDatabase
+    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
+    res.redirect(`urls/${shortURL}`);
   }
 });
 
 // redirect any request to "/u/:shortURL" to its longURL
 app.get("/u/:shortURL", (req, res) => {
-  
-  if(urlDatabase[req.params.shortURL]){
-  const {longURL} = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-  } else{
-    res.send("The short URL does not exist")
-  }
-});
 
-// POST route that removes a URL resource
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const deletetUrl = req.params.shortURL;
-  delete urlDatabase[deletetUrl];
-  res.redirect("/urls");
+  if (urlDatabase[req.params.shortURL]) {
+    const { longURL } = urlDatabase[req.params.shortURL];
+    res.redirect(longURL);
+  } else {
+    res.send("The short URL does not exist");
+  }
 });
 
 // POST route that updates a URL resource
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.longURL;
+  const userId = req.cookies["user_id"];
   urlDatabase[id]["longURL"] = newURL;
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
-  res.render("urls_index", templateVars);
+  // Make sure that users can only edit their own URLs
+  if (urlsForUser(userId)[id]) {
+    const templateVars = { urls: urlsForUser(userId), user: users[userId] };
+    res.render("urls_index", templateVars);
+  } else {
+
+    res.send("Not sufficient privileges");
+  }
 });
 
 // GET route that takes us to the appropriate urls_show page
 app.get("/urls/:shortURL/edit", (req, res) => {
-  const id = req.params.shortURL
-  const templateVars = { shortURL: id, longURL: urlDatabase[id]["longURL"], user: users[req.cookies["user_id"]] };
+  const id = req.params.shortURL;
+  const userId = req.cookies["user_id"];
+  const templateVars = { shortURL: id, longURL: urlDatabase[id]["longURL"], user: users[userId] };
   res.render("urls_show", templateVars);
+});
+
+// POST route that removes a URL resource
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const userId = req.cookies["user_id"];
+  const deletetUrl = req.params.shortURL;
+
+  // Make sure that users can only delete their own URLs
+  if (urlsForUser(userId)[deletetUrl]) {
+    delete urlDatabase[deletetUrl];
+    res.redirect("/urls");
+  } else {
+    res.send("Not sufficient privileges");
+  }
 });
 
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]] };
-
   res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  // 1. if email/password are empty, send back response with 400 status code
+  // If email/password are empty, send back response with 400 status code
   if (!email || !password) {
     return res.status(400).send("Email and password cannot be blank");
   }
