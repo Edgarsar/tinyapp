@@ -1,15 +1,21 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["4f3981bb-3a1e-490e-9375-1c88120fd702"],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 const urlDatabase = {
   b6UTxQ: {
@@ -61,15 +67,8 @@ const generateRandomString = () => {
   }
   return randomString;
 };
-// Check for the email and password in the Users Database
-const authenticateUser = (email, password) => {
-  for (const key in users) {
-    if (users[key].email === email && users[key].password === password) {
-      return users[key];
-    }
-  }
-  return false;
-};
+
+
 // Returns the URLs where the userID is equal to the id of the currently logged-in user
 const urlsForUser = (id) => {
   const newObj = {};
@@ -83,19 +82,19 @@ const urlsForUser = (id) => {
 
 // Use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
-  const id = req.cookies["user_id"];
+  const id = req.session.user_id;
 
-  const templateVars = { urls: urlsForUser(id), user: users[req.cookies["user_id"]] };
+  const templateVars = { urls: urlsForUser(id), user: users[id] };
   res.render("urls_index", templateVars);
 });
 
 // use res.render to load up an "urls_new.ejs" view file
 app.get("/urls/new", (req, res) => {
-  const user = req.cookies["user_id"];
-  if (!users[user]) {
+  const userId = req.session.user_id;
+  if (!users[userId]) {
     res.redirect("/login");
   } else {
-    const templateVars = { user: users[req.cookies["user_id"]] };
+    const templateVars = { user: users[userId] };
     res.render("urls_new", templateVars);
   }
 });
@@ -103,20 +102,20 @@ app.get("/urls/new", (req, res) => {
 // use res.render to load up an "urls_show.ejs" view file
 app.get("/urls/:shortURL", (req, res) => {
   const id = req.params.shortURL;
-  const templateVars = { shortURL: id, longURL: urlDatabase[id]["longURL"], user: users[req.cookies["user_id"]] };
+  const templateVars = { shortURL: id, longURL: urlDatabase[id]["longURL"], user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
 });
 
 //respond with a redirect
 app.post("/urls", (req, res) => {
-  const user = req.cookies["user_id"];
+  const user = req.session.user_id;
   if (!users[user]) {
     res.send("Please login or register firts");
   } else {
     // generates a shortURL
     const shortURL = generateRandomString();
     // save the longURL and shortURL to the urlDatabase
-    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"] };
+    urlDatabase[shortURL] = { longURL: req.body.longURL, userID: user };
     res.redirect(`urls/${shortURL}`);
   }
 });
@@ -136,7 +135,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.longURL;
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   urlDatabase[id]["longURL"] = newURL;
   // Make sure that users can only edit their own URLs
   if (urlsForUser(userId)[id]) {
@@ -151,14 +150,14 @@ app.post("/urls/:id", (req, res) => {
 // GET route that takes us to the appropriate urls_show page
 app.get("/urls/:shortURL/edit", (req, res) => {
   const id = req.params.shortURL;
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const templateVars = { shortURL: id, longURL: urlDatabase[id]["longURL"], user: users[userId] };
   res.render("urls_show", templateVars);
 });
 
 // POST route that removes a URL resource
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const deletetUrl = req.params.shortURL;
 
   // Make sure that users can only delete their own URLs
@@ -171,14 +170,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10)
+  const hashedPassword = bcrypt.hashSync(password, 10);
   // If email/password are empty, send back response with 400 status code
   if (!email || !password) {
     return res.status(400).send("Email and password cannot be blank");
@@ -194,13 +193,14 @@ app.post("/register", (req, res) => {
   const user = { id, email, hashedPassword };
   // add the new user to the user object
   users[id] = user;
-  res.cookie("user_id", id);
+  // set the session cookie
+  req.session.user_id = id;
   res.redirect("/urls");
 
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const templateVars = { user: users[req.session.user_id] };
   res.render("urls_login", templateVars);
 });
 
@@ -214,10 +214,10 @@ app.post("/login", (req, res) => {
   }
   // Find the user by email in the user database
   const user = getUserByEmail(email);
-  //Checks email and user's password is correct 
+  //Checks email and user's password is correct
   if (user && bcrypt.compareSync(password, users[user.id].hashedPassword)) {
-
-    res.cookie('user_id', user.id);
+  // set the session cookie
+    req.session.user_id = user.id;
     res.redirect("/urls");
   } else {
     res.send("Hey! the username with the specified email or password does not match!");
@@ -226,7 +226,7 @@ app.post("/login", (req, res) => {
 
 // POST route that removes the cookies and redirects to the "/urls" page
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
