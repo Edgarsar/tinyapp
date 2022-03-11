@@ -70,11 +70,11 @@ const generateRandomString = () => {
 
 
 // Returns the URLs where the userID is equal to the id of the currently logged-in user
-const urlsForUser = (id) => {
+const urlsForUser = (id, database) => {
   const newObj = {};
-  for (const urlId in urlDatabase) {
-    if (urlDatabase[urlId]["userID"] === id) {
-      newObj[urlId] = urlDatabase[urlId];
+  for (const urlId in database) {
+    if (database[urlId]["userID"] === id) {
+      newObj[urlId] = database[urlId];
     }
   }
   return newObj;
@@ -84,7 +84,7 @@ const urlsForUser = (id) => {
 app.get("/urls", (req, res) => {
   const id = req.session.user_id;
 
-  const templateVars = { urls: urlsForUser(id), user: users[id] };
+  const templateVars = { urls: urlsForUser(id, urlDatabase), user: users[id] };
   res.render("urls_index", templateVars);
 });
 
@@ -138,8 +138,8 @@ app.post("/urls/:id", (req, res) => {
   const userId = req.session.user_id;
   urlDatabase[id]["longURL"] = newURL;
   // Make sure that users can only edit their own URLs
-  if (urlsForUser(userId)[id]) {
-    const templateVars = { urls: urlsForUser(userId), user: users[userId] };
+  if (urlsForUser(userId, urlDatabase)[id]) {
+    const templateVars = { urls: urlsForUser(userId, urlDatabase), user: users[userId] };
     res.render("urls_index", templateVars);
   } else {
 
@@ -161,7 +161,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const deletetUrl = req.params.shortURL;
 
   // Make sure that users can only delete their own URLs
-  if (urlsForUser(userId)[deletetUrl]) {
+  if (urlsForUser(userId, urlDatabase)[deletetUrl]) {
     delete urlDatabase[deletetUrl];
     res.redirect("/urls");
   } else {
