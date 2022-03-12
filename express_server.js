@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const PORT = 8080; // default port 8080
-const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers')
+const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
 
 app.set("view engine", "ejs");
 
