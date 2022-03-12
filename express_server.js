@@ -51,7 +51,6 @@ const users = {
 // Use res.render to load up a "urls_index.ejs" view file
 app.get("/urls", (req, res) => {
   const id = req.session.user_id;
-
   const templateVars = { urls: urlsForUser(id, urlDatabase), user: users[id] };
   res.render("urls_index", templateVars);
 });
