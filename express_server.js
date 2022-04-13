@@ -177,17 +177,18 @@ app.post("/login", (req, res) => {
 
   // The email and password should not be blank
   if (!email || !password) {
-    res.send("Email or password cannot be blank");
-  }
-  // Find the user by email in the user database
-  const user = getUserByEmail(email, users);
-  //Checks email and user's password is correct
-  if (user && bcrypt.compareSync(password, users[user.id].hashedPassword)) {
-    // set the session cookie
-    req.session.user_id = user.id;
-    res.redirect("/urls");
+    res.status(400).send("Email or password cannot be blank");
   } else {
-    res.send("Hey! the username with the specified email or password does not match!");
+    // Find the user by email in the user database
+    const user = getUserByEmail(email, users);
+    //Checks email and user's password is correct
+    if (user && bcrypt.compareSync(password, users[user.id].hashedPassword)) {
+      // set the session cookie
+      req.session.user_id = user.id;
+      res.redirect("/urls");
+    } else {
+      res.status(403).send("Hey! the username with the specified email or password does not match!");
+    }
   }
 });
 
@@ -199,4 +200,4 @@ app.post("/logout", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
-});
+}); 
